@@ -1,0 +1,144 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.625rem;
+    /* Vibez Dark Theme */
+    --background: 0.14 0.022 240;
+    --foreground: 0.94 0.007 240;
+    --card: 0.21 0.03 240;
+    --card-foreground: 0.94 0.007 240;
+    --popover: 0.21 0.03 240;
+    --popover-foreground: 0.94 0.007 240;
+    --primary: 0.74 0.166 58;
+    --primary-foreground: 0.14 0.022 240;
+    --secondary: 0.26 0.032 240;
+    --secondary-foreground: 0.94 0.007 240;
+    --muted: 0.21 0.03 240;
+    --muted-foreground: 0.68 0.028 240;
+    --accent: 0.74 0.166 58;
+    --accent-foreground: 0.14 0.022 240;
+    --destructive: 0.6 0.248 25;
+    --destructive-foreground: 0.94 0.007 240;
+    --border: 0.26 0.032 240;
+    --input: 0.26 0.032 240;
+    --ring: 0.74 0.166 58;
+    --chart-1: 0.74 0.166 58;
+    --chart-2: 0.72 0.218 150;
+    --chart-3: 0.61 0.265 355;
+    --chart-4: 0.6 0.248 25;
+    --chart-5: 0.68 0.028 240;
+    --sidebar: 0.14 0.022 240;
+    --sidebar-foreground: 0.94 0.007 240;
+    --sidebar-primary: 0.74 0.166 58;
+    --sidebar-primary-foreground: 0.14 0.022 240;
+    --sidebar-accent: 0.21 0.03 240;
+    --sidebar-accent-foreground: 0.94 0.007 240;
+    --sidebar-border: 0.26 0.032 240;
+    --sidebar-ring: 0.74 0.166 58;
+    /* Custom Vibez tokens */
+    --vibez-orange: 0.74 0.166 58;
+    --vibez-green: 0.72 0.218 150;
+    --vibez-pink: 0.61 0.265 355;
+    --vibez-red: 0.6 0.248 25;
+    --vibez-surface: 0.21 0.03 240;
+    --vibez-surface2: 0.17 0.027 240;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    overscroll-behavior: none;
+  }
+}
+
+/* Custom scroll snap */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Heart burst animation */
+@keyframes heartBurst {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.4);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.heart-burst {
+  animation: heartBurst 0.4s ease-in-out;
+}
+
+/* Spin animation for record */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Fade up animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.4s ease-out forwards;
+}
+
+/* Progress bar shimmer */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
