@@ -1,32 +1,32 @@
 # Vibez India
 
 ## Current State
-New project. No existing backend or frontend.
+Fresh workspace - rebuilding from conversation history.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Short video social platform focused on Indian users
-- User authentication and profiles
-- Video upload and storage
-- Vertical scrolling video feed (For You, Following, Live tabs)
-- Horizontal category chip filter (All, Bollywood, Cricket, Dance, Comedy, Food, Travel, Lifestyle)
-- Like, comment, share interactions on videos
-- Follow/unfollow users
-- Discover/search page for creators and videos
-- Notifications page
-- Profile page with uploaded videos grid and stats
-- Video playback with progress scrubber
-- Trending hashtags and sounds
+- TikTok-style snap-scrolling vertical video feed with Indian sample content
+- Category filter: Bollywood, Cricket, Dance, Comedy, Food, Travel, Lifestyle
+- Trending hashtags: #IPL2024, #Diwali, #Bhangra
+- Like, comment, share (WhatsApp & Facebook) on video cards
+- Double-tap-to-like gesture
+- Discover tab: trending hashtags, popular Indian creators, searchable video grid
+- Upload tab: drag-and-drop video upload with metadata and category
+- Notifications tab: likes, follows, comments with unread badges
+- Profile tab: stats grid, video grid, Internet Identity login
+- WhatsApp and Facebook share buttons on every video card
+- Facebook connect button on profile
 
 ### Modify
-N/A
+- N/A (new build)
 
 ### Remove
-N/A
+- N/A
 
 ## Implementation Plan
-1. Backend: User profiles, video metadata CRUD, likes, comments, follows, notifications in Motoko
-2. Blob storage for video files and profile pictures
-3. Authorization for authenticated actions
-4. Frontend: TikTok-style dark UI with Indian color palette (saffron/orange accent), bottom nav, vertical feed, action buttons, upload flow, discover, profile
+1. Generate Motoko backend with video metadata, likes, comments, user profiles
+2. Build React frontend with 5 tabs: Home, Discover, Upload, Notifications, Profile
+3. Dark UI with saffron-orange #F4A23B accents
+4. Sample Indian content with mock video thumbnails
+5. WhatsApp/Facebook share via web share / direct links

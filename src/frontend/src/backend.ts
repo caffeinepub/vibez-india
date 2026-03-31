@@ -89,8 +89,39 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface UserProfile {
-    name: string;
+export interface Comment {
+    createdAt: bigint;
+    text: string;
+    author: Principal;
+    videoId: bigint;
+}
+export interface User {
+    bio: string;
+    displayName: string;
+    avatarUrl: string;
+    followerCount: bigint;
+    followingCount: bigint;
+}
+export interface Notification {
+    notificationType: Variant_like_comment_follow;
+    read: boolean;
+    fromUser: Principal;
+    videoId?: bigint;
+}
+export interface _CaffeineStorageRefillInformation {
+    proposed_top_up_amount?: bigint;
+}
+export interface VideoPost {
+    title: string;
+    creator: Principal;
+    likeCount: bigint;
+    thumbnailUrl: string;
+    hashtags: Array<string>;
+    createdAt: bigint;
+    description: string;
+    commentCount: bigint;
+    category: string;
+    videoUrl: string;
 }
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
@@ -100,13 +131,15 @@ export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
 }
-export interface _CaffeineStorageRefillInformation {
-    proposed_top_up_amount?: bigint;
-}
 export enum UserRole {
     admin = "admin",
     user = "user",
     guest = "guest"
+}
+export enum Variant_like_comment_follow {
+    like = "like",
+    comment = "comment",
+    follow = "follow"
 }
 export interface backendInterface {
     _caffeineStorageBlobIsLive(hash: Uint8Array): Promise<boolean>;
@@ -116,14 +149,34 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
+    addComment(videoId: bigint, text: string): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    getCallerUserProfile(): Promise<UserProfile | null>;
+    createUser(displayName: string, bio: string, avatarUrl: string): Promise<void>;
+    createVideo(title: string, description: string, hashtags: Array<string>, category: string, videoUrl: string, thumbnailUrl: string): Promise<bigint>;
+    followUser(followee: Principal): Promise<void>;
+    getAllVideos(): Promise<Array<VideoPost>>;
+    getCallerUserProfile(): Promise<User | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getComments(videoId: bigint): Promise<Array<Comment>>;
+    getFollowers(userId: Principal): Promise<Array<Principal>>;
+    getFollowing(userId: Principal): Promise<Array<Principal>>;
+    getNotifications(): Promise<Array<Notification>>;
+    getPagedVideos(page: bigint, pageSize: bigint): Promise<Array<VideoPost>>;
+    getUserProfile(user: Principal): Promise<User | null>;
+    getVideo(id: bigint): Promise<VideoPost | null>;
+    getVideosByCategory(category: string): Promise<Array<VideoPost>>;
+    getVideosByCreator(creator: Principal): Promise<Array<VideoPost>>;
     isCallerAdmin(): Promise<boolean>;
-    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    likeVideo(videoId: bigint): Promise<void>;
+    markNotificationsRead(): Promise<void>;
+    saveCallerUserProfile(profile: User): Promise<void>;
+    searchUsers(searchTerm: string): Promise<Array<User>>;
+    searchVideos(searchTerm: string): Promise<Array<VideoPost>>;
+    unfollowUser(followee: Principal): Promise<void>;
+    unlikeVideo(videoId: bigint): Promise<void>;
+    updateUser(displayName: string, bio: string, avatarUrl: string): Promise<void>;
 }
-import type { UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { Notification as _Notification, User as _User, UserRole as _UserRole, VideoPost as _VideoPost, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -224,6 +277,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async addComment(arg0: bigint, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addComment(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addComment(arg0, arg1);
+            return result;
+        }
+    }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
@@ -238,7 +305,63 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getCallerUserProfile(): Promise<UserProfile | null> {
+    async createUser(arg0: string, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createUser(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createUser(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async createVideo(arg0: string, arg1: string, arg2: Array<string>, arg3: string, arg4: string, arg5: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createVideo(arg0, arg1, arg2, arg3, arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createVideo(arg0, arg1, arg2, arg3, arg4, arg5);
+            return result;
+        }
+    }
+    async followUser(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.followUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.followUser(arg0);
+            return result;
+        }
+    }
+    async getAllVideos(): Promise<Array<VideoPost>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllVideos();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllVideos();
+            return result;
+        }
+    }
+    async getCallerUserProfile(): Promise<User | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
@@ -266,7 +389,77 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n11(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+    async getComments(arg0: bigint): Promise<Array<Comment>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getComments(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getComments(arg0);
+            return result;
+        }
+    }
+    async getFollowers(arg0: Principal): Promise<Array<Principal>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFollowers(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFollowers(arg0);
+            return result;
+        }
+    }
+    async getFollowing(arg0: Principal): Promise<Array<Principal>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFollowing(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFollowing(arg0);
+            return result;
+        }
+    }
+    async getNotifications(): Promise<Array<Notification>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getNotifications();
+                return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getNotifications();
+            return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getPagedVideos(arg0: bigint, arg1: bigint): Promise<Array<VideoPost>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPagedVideos(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPagedVideos(arg0, arg1);
+            return result;
+        }
+    }
+    async getUserProfile(arg0: Principal): Promise<User | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
@@ -278,6 +471,48 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getUserProfile(arg0);
             return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVideo(arg0: bigint): Promise<VideoPost | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVideo(arg0);
+                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVideo(arg0);
+            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVideosByCategory(arg0: string): Promise<Array<VideoPost>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVideosByCategory(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVideosByCategory(arg0);
+            return result;
+        }
+    }
+    async getVideosByCreator(arg0: Principal): Promise<Array<VideoPost>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVideosByCreator(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVideosByCreator(arg0);
+            return result;
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -294,7 +529,35 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+    async likeVideo(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.likeVideo(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.likeVideo(arg0);
+            return result;
+        }
+    }
+    async markNotificationsRead(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markNotificationsRead();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markNotificationsRead();
+            return result;
+        }
+    }
+    async saveCallerUserProfile(arg0: User): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.saveCallerUserProfile(arg0);
@@ -308,6 +571,79 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async searchUsers(arg0: string): Promise<Array<User>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.searchUsers(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.searchUsers(arg0);
+            return result;
+        }
+    }
+    async searchVideos(arg0: string): Promise<Array<VideoPost>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.searchVideos(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.searchVideos(arg0);
+            return result;
+        }
+    }
+    async unfollowUser(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.unfollowUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.unfollowUser(arg0);
+            return result;
+        }
+    }
+    async unlikeVideo(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.unlikeVideo(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.unlikeVideo(arg0);
+            return result;
+        }
+    }
+    async updateUser(arg0: string, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateUser(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateUser(arg0, arg1, arg2);
+            return result;
+        }
+    }
+}
+function from_candid_Notification_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Notification): Notification {
+    return from_candid_record_n15(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n12(_uploadFile, _downloadFile, value);
@@ -315,7 +651,10 @@ function from_candid_UserRole_n11(_uploadFile: (file: ExternalBlob) => Promise<U
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_User]): User | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_VideoPost]): VideoPost | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -323,6 +662,30 @@ function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 }
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    notificationType: {
+        like: null;
+    } | {
+        comment: null;
+    } | {
+        follow: null;
+    };
+    read: boolean;
+    fromUser: Principal;
+    videoId: [] | [bigint];
+}): {
+    notificationType: Variant_like_comment_follow;
+    read: boolean;
+    fromUser: Principal;
+    videoId?: bigint;
+} {
+    return {
+        notificationType: from_candid_variant_n16(_uploadFile, _downloadFile, value.notificationType),
+        read: value.read,
+        fromUser: value.fromUser,
+        videoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.videoId))
+    };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     success: [] | [boolean];
@@ -344,6 +707,18 @@ function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Ui
     guest: null;
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
+}
+function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    like: null;
+} | {
+    comment: null;
+} | {
+    follow: null;
+}): Variant_like_comment_follow {
+    return "like" in value ? Variant_like_comment_follow.like : "comment" in value ? Variant_like_comment_follow.comment : "follow" in value ? Variant_like_comment_follow.follow : value;
+}
+function from_candid_vec_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Notification>): Array<Notification> {
+    return value.map((x)=>from_candid_Notification_n14(_uploadFile, _downloadFile, x));
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);

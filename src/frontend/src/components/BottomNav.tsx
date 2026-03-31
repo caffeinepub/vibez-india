@@ -1,76 +1,102 @@
-import { Bell, Compass, Home, Plus, User } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Bell, Home, Plus, Search, User } from "lucide-react";
+import { motion } from "motion/react";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useGetNotifications } from "../hooks/useQueries";
 
-type Tab = "feed" | "discover" | "upload" | "notifications" | "profile";
+export default function BottomNav() {
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
+  const { data: notifications } = useGetNotifications();
+  const { identity } = useInternetIdentity();
+  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0;
 
-interface BottomNavProps {
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-  notificationCount?: number;
-}
-
-export function BottomNav({
-  activeTab,
-  onTabChange,
-  notificationCount = 3,
-}: BottomNavProps) {
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "feed", label: "Home", icon: <Home size={22} /> },
-    { id: "discover", label: "Discover", icon: <Compass size={22} /> },
-    { id: "upload", label: "", icon: null },
-    { id: "notifications", label: "Inbox", icon: <Bell size={22} /> },
-    { id: "profile", label: "Profile", icon: <User size={22} /> },
+  const tabs = [
+    { to: "/", icon: Home, label: "Home" },
+    { to: "/discover", icon: Search, label: "Discover" },
+    { to: "/upload", icon: Plus, label: "", isUpload: true },
+    {
+      to: "/notifications",
+      icon: Bell,
+      label: "Inbox",
+      hasBadge: unreadCount > 0,
+    },
+    { to: "/profile", icon: User, label: "Profile" },
   ];
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-border"
-      style={{ background: "oklch(0.14 0.022 240)", height: "72px" }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-16"
+      style={{
+        background: "oklch(0.09 0.02 240 / 0.97)",
+        backdropFilter: "blur(12px)",
+        borderTop: "1px solid oklch(0.20 0.03 240)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       {tabs.map((tab) => {
-        if (tab.id === "upload") {
+        const isActive = pathname === tab.to;
+        if (tab.isUpload) {
           return (
-            <button
-              key="upload"
-              type="button"
-              data-ocid="nav.upload_button"
-              onClick={() => onTabChange("upload")}
-              className="flex items-center justify-center w-12 h-10 rounded-xl text-background font-bold text-xl shadow-glow transition-transform active:scale-95"
-              style={{
-                background:
-                  "linear-gradient(135deg, oklch(0.74 0.166 58), oklch(0.74 0.166 58 / 0.8))",
-              }}
-              aria-label="Upload video"
-            >
-              <Plus size={24} strokeWidth={2.5} />
-            </button>
+            <Link key={tab.to} to={tab.to} data-ocid="nav.upload.button">
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                className="w-12 h-8 rounded-lg flex items-center justify-center"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
+                }}
+              >
+                <Plus
+                  className="w-6 h-6 text-white font-bold"
+                  strokeWidth={3}
+                />
+              </motion.div>
+            </Link>
           );
         }
-        const isActive = activeTab === tab.id;
         return (
-          <button
-            key={tab.id}
-            type="button"
-            data-ocid={`nav.${tab.id}.link`}
-            onClick={() => onTabChange(tab.id)}
-            className="flex flex-col items-center justify-center gap-0.5 w-14 h-full relative transition-colors"
-            style={{
-              color: isActive
-                ? "oklch(0.74 0.166 58)"
-                : "oklch(0.68 0.028 240)",
-            }}
-            aria-label={tab.label}
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className="flex flex-col items-center gap-0.5 relative pt-1"
+            data-ocid={`nav.${tab.label.toLowerCase()}.link`}
           >
-            {tab.icon}
-            <span className="text-[10px] font-medium">{tab.label}</span>
-            {tab.id === "notifications" && notificationCount > 0 && (
-              <span
-                className="absolute top-2 right-3 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold text-white"
-                style={{ background: "oklch(0.60 0.248 25)" }}
-              >
-                {notificationCount}
-              </span>
+            {/* Active indicator — orange line at top */}
+            {isActive && (
+              <motion.div
+                layoutId="nav-indicator"
+                className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full"
+                style={{ background: "oklch(0.73 0.17 55)" }}
+              />
             )}
-          </button>
+            <motion.div whileTap={{ scale: 0.85 }} className="relative">
+              <tab.icon
+                className="w-6 h-6 transition-colors"
+                style={{
+                  color: isActive
+                    ? "oklch(0.73 0.17 55)"
+                    : "oklch(0.68 0.04 240)",
+                }}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              {tab.hasBadge && identity && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </motion.div>
+            <span
+              className="text-[10px] font-medium transition-colors"
+              style={{
+                color: isActive
+                  ? "oklch(0.73 0.17 55)"
+                  : "oklch(0.68 0.04 240)",
+              }}
+            >
+              {tab.label}
+            </span>
+          </Link>
         );
       })}
     </nav>

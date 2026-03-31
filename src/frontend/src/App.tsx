@@ -1,61 +1,77 @@
 import { Toaster } from "@/components/ui/sonner";
-import { AnimatePresence } from "motion/react";
-import { useState } from "react";
-import { BottomNav } from "./components/BottomNav";
-import { DiscoverPage } from "./pages/DiscoverPage";
-import { FeedPage } from "./pages/FeedPage";
-import { NotificationsPage } from "./pages/NotificationsPage";
-import { ProfilePage } from "./pages/ProfilePage";
-import { UploadPage } from "./pages/UploadPage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
+import BottomNav from "./components/BottomNav";
+import Discover from "./pages/Discover";
+import Home from "./pages/Home";
+import Notifications from "./pages/Notifications";
+import Profile from "./pages/Profile";
+import Upload from "./pages/Upload";
 
-type Tab = "feed" | "discover" | "upload" | "notifications" | "profile";
+const queryClient = new QueryClient();
+
+const rootRoute = createRootRoute({
+  component: () => (
+    <div className="relative h-[100dvh] overflow-hidden bg-background">
+      <Outlet />
+      <BottomNav />
+    </div>
+  ),
+});
+
+const homeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  component: Home,
+});
+const discoverRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/discover",
+  component: Discover,
+});
+const uploadRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/upload",
+  component: Upload,
+});
+const notificationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/notifications",
+  component: Notifications,
+});
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile",
+  component: Profile,
+});
+
+const routeTree = rootRoute.addChildren([
+  homeRoute,
+  discoverRoute,
+  uploadRoute,
+  notificationsRoute,
+  profileRoute,
+]);
+
+const router = createRouter({ routeTree });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("feed");
-  const [showUpload, setShowUpload] = useState(false);
-
-  const handleTabChange = (tab: Tab) => {
-    if (tab === "upload") {
-      setShowUpload(true);
-    } else {
-      setActiveTab(tab);
-    }
-  };
-
   return (
-    <div
-      className="min-h-screen w-full flex justify-center"
-      style={{ background: "oklch(0.12 0.018 240)" }}
-    >
-      {/* Mobile-first centered container */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ maxWidth: "480px" }}
-      >
-        {/* Main page content */}
-        <div className="pb-[72px]">
-          {activeTab === "feed" && (
-            <FeedPage onUploadClick={() => setShowUpload(true)} />
-          )}
-          {activeTab === "discover" && <DiscoverPage />}
-          {activeTab === "notifications" && <NotificationsPage />}
-          {activeTab === "profile" && <ProfilePage />}
-        </div>
-
-        {/* Bottom navigation */}
-        <BottomNav
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={3}
-        />
-
-        {/* Upload Modal */}
-        <AnimatePresence>
-          {showUpload && <UploadPage onClose={() => setShowUpload(false)} />}
-        </AnimatePresence>
-
-        <Toaster position="top-center" />
-      </div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      <Toaster position="top-center" />
+    </QueryClientProvider>
   );
 }

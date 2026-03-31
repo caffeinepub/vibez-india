@@ -1,275 +1,262 @@
 import {
-  Check,
+  Bookmark,
   Heart,
   MessageCircle,
-  Music,
+  Music2,
+  Play,
   Share2,
-  UserPlus,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
-import type { VideoData } from "../data/sampleVideos";
-
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
+import { type MockVideo, formatCount } from "../data/mockVideos";
+import ShareSheet from "./ShareSheet";
 
 interface VideoCardProps {
-  video: VideoData;
+  video: MockVideo;
   isActive: boolean;
-  index: number;
 }
 
-export function VideoCard({ video, isActive, index }: VideoCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(video.likes);
-  const [following, setFollowing] = useState(video.isFollowing);
-  const [heartBurst, setHeartBurst] = useState(false);
-  const [progress] = useState(42);
-  const lastTapRef = useRef(0);
+const LANG_PILLS = ["हिंदी", "English"];
 
-  const handleLike = useCallback(() => {
-    setLiked((prev) => {
-      const next = !prev;
-      setLikeCount((c) => (next ? c + 1 : c - 1));
-      return next;
-    });
-    if (!liked) {
-      setHeartBurst(true);
-      setTimeout(() => setHeartBurst(false), 400);
-    }
-  }, [liked]);
+export default function VideoCard({ video, isActive }: VideoCardProps) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(video.likes);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
+  const [activeLang, setActiveLang] = useState("हिंदी");
+  const lastTapRef = useRef(0);
 
   const handleDoubleTap = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      if (!liked) handleLike();
+      if (!liked) {
+        setLiked(true);
+        setLikes((l) => l + 1);
+      }
+      setShowHeart(true);
+      setTimeout(() => setShowHeart(false), 900);
     }
     lastTapRef.current = now;
-  }, [liked, handleLike]);
+  }, [liked]);
+
+  const toggleLike = () => {
+    if (liked) {
+      setLiked(false);
+      setLikes((l) => l - 1);
+    } else {
+      setLiked(true);
+      setLikes((l) => l + 1);
+    }
+  };
 
   return (
-    <div
-      className="snap-item relative flex-shrink-0 w-full flex items-center justify-center"
-      style={{ height: "calc(100vh - 72px)" }}
-      data-ocid={`feed.item.${index + 1}`}
+    <article
+      className="snap-item relative w-full h-[100dvh] bg-black overflow-hidden flex-shrink-0"
+      onClick={handleDoubleTap}
+      onKeyUp={(e) => e.key === "Enter" && handleDoubleTap()}
+      data-ocid={`feed.item.${video.id}`}
     >
-      {/* Video thumbnail / background */}
-      <div
-        className="relative rounded-3xl overflow-hidden shadow-card"
-        style={{
-          width: "min(420px, 100vw)",
-          height: "min(calc(100vh - 72px), 750px)",
-          maxHeight: "90vh",
-        }}
-      >
+      <img
+        src={video.thumbnail}
+        alt={video.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/30" />
+
+      {!isActive && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Play className="w-16 h-16 text-white/70 fill-white/70" />
+        </div>
+      )}
+
+      {/* Double-tap heart burst */}
+      <AnimatePresence>
+        {showHeart && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1.2 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Heart className="w-32 h-32 text-red-500 fill-red-500 drop-shadow-lg" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top-left: username + category badge */}
+      <div className="absolute top-[72px] left-4 z-20 flex items-center gap-2">
+        <span className="bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-semibold">
+          {video.handle}
+        </span>
+        <span
+          className="rounded-full px-2 py-0.5 text-xs font-bold"
+          style={{
+            background: "oklch(0.73 0.17 55 / 0.85)",
+            color: "oklch(0.09 0.01 55)",
+          }}
+        >
+          {video.category}
+        </span>
+      </div>
+
+      {/* Top-right overflow */}
+      <div className="absolute top-[72px] right-4 z-20">
         <button
           type="button"
-          className="w-full h-full block p-0 border-0 bg-transparent cursor-default"
-          aria-label="Double-tap to like"
-          onClick={handleDoubleTap}
+          className="text-white/70 text-lg leading-none p-1"
+          onClick={(e) => e.stopPropagation()}
         >
-          <img
-            src={video.thumbnail}
-            alt={video.caption}
-            className="w-full h-full object-cover"
-            style={{ display: "block" }}
-          />
+          ···
         </button>
+      </div>
 
-        {/* Dark gradient overlay bottom */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 40%, transparent 65%)",
+      {/* Right-side engagement rail */}
+      <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5 z-20">
+        {/* Creator avatar */}
+        <div className="mb-1">
+          <div
+            className="w-11 h-11 rounded-full border-2 border-white overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
+            }}
+          >
+            {video.creator[0]}
+          </div>
+          <div
+            className="w-4 h-4 rounded-full flex items-center justify-center -mt-2 mx-auto border border-black"
+            style={{ background: "oklch(0.73 0.17 55)" }}
+          >
+            <span className="text-black text-[8px] font-black">+</span>
+          </div>
+        </div>
+
+        {/* Like */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleLike();
           }}
-        />
-
-        {/* Playing indicator */}
-        {isActive && (
-          <div className="absolute top-4 right-4 flex gap-1 items-center pointer-events-none">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="w-0.5 bg-white rounded-full"
-                style={{
-                  height: `${12 + i * 4}px`,
-                  opacity: 0.8,
-                  animation: `pulse ${0.6 + i * 0.15}s ease-in-out infinite alternate`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Right action rail */}
-        <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
-          {/* Follow/Avatar */}
-          <div className="relative">
-            <button
-              type="button"
-              data-ocid={`feed.${index + 1}.open_modal_button`}
-              className="w-11 h-11 rounded-full border-2 overflow-hidden block"
-              style={{ borderColor: "oklch(0.74 0.166 58)" }}
-              aria-label="View profile"
-            >
-              <img
-                src={video.avatar}
-                alt={video.username}
-                className="w-full h-full object-cover"
-              />
-            </button>
-            <button
-              type="button"
-              data-ocid={`feed.${index + 1}.toggle`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setFollowing((prev) => !prev);
-              }}
-              className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center text-white"
-              style={{
-                background: following
-                  ? "oklch(0.72 0.218 150)"
-                  : "oklch(0.74 0.166 58)",
-              }}
-              aria-label={following ? "Following" : "Follow"}
-            >
-              {following ? (
-                <Check size={10} strokeWidth={3} />
-              ) : (
-                <UserPlus size={10} strokeWidth={2.5} />
-              )}
-            </button>
-          </div>
-
-          {/* Like */}
-          <button
-            type="button"
-            data-ocid={`feed.${index + 1}.button`}
-            onClick={handleLike}
-            className="flex flex-col items-center gap-1"
-            aria-label="Like"
+          className="flex flex-col items-center gap-1"
+          data-ocid={`feed.like.button.${video.id}`}
+        >
+          <motion.div
+            whileTap={{ scale: 1.4 }}
+            className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm"
           >
             <Heart
-              size={30}
-              fill={liked ? "oklch(0.61 0.265 355)" : "none"}
-              stroke={liked ? "oklch(0.61 0.265 355)" : "white"}
-              strokeWidth={2}
-              className={heartBurst ? "heart-burst" : ""}
-              style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
+              className={`w-6 h-6 ${
+                liked ? "text-red-500 fill-red-500" : "text-white"
+              } transition-colors`}
             />
-            <span
-              className="text-white text-xs font-semibold"
-              style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
-            >
-              {formatCount(likeCount)}
-            </span>
-          </button>
+          </motion.div>
+          <span className="text-white text-xs font-semibold drop-shadow">
+            {formatCount(likes)}
+          </span>
+        </button>
 
-          {/* Comment */}
+        {/* Comment */}
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="flex flex-col items-center gap-1"
+          data-ocid={`feed.comment.button.${video.id}`}
+        >
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-white text-xs font-semibold drop-shadow">
+            {formatCount(video.comments)}
+          </span>
+        </button>
+
+        {/* Share */}
+        <ShareSheet
+          title={`${video.title} — ${video.handle} on Vibez India 🎬`}
+        >
           <button
             type="button"
-            data-ocid={`feed.${index + 1}.secondary_button`}
+            onClick={(e) => e.stopPropagation()}
             className="flex flex-col items-center gap-1"
-            aria-label="Comment"
+            data-ocid={`feed.share.button.${video.id}`}
           >
-            <MessageCircle
-              size={28}
-              stroke="white"
-              strokeWidth={2}
-              style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
-            />
-            <span
-              className="text-white text-xs font-semibold"
-              style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
-            >
-              {formatCount(video.comments)}
-            </span>
-          </button>
-
-          {/* Share */}
-          <button
-            type="button"
-            data-ocid={`feed.${index + 1}.share_button`}
-            className="flex flex-col items-center gap-1"
-            aria-label="Share"
-          >
-            <Share2
-              size={26}
-              stroke="white"
-              strokeWidth={2}
-              style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}
-            />
-            <span
-              className="text-white text-xs font-semibold"
-              style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
-            >
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
+              <Share2 className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-white text-xs font-semibold drop-shadow">
               {formatCount(video.shares)}
             </span>
           </button>
+        </ShareSheet>
 
-          {/* Spinning record */}
-          <button
-            type="button"
-            className="flex flex-col items-center gap-1"
-            aria-label="Sound"
-          >
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? "animate-spin-slow" : ""}`}
-              style={{
-                background:
-                  "radial-gradient(circle, oklch(0.14 0.022 240) 30%, oklch(0.26 0.032 240) 100%)",
-                border: "2px solid oklch(0.74 0.166 58 / 0.6)",
-              }}
-            >
-              <Music size={12} stroke="oklch(0.74 0.166 58)" />
-            </div>
-          </button>
-        </div>
-
-        {/* Bottom caption overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-3 pointer-events-none">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-white font-bold text-sm">{video.handle}</span>
-          </div>
-          <p className="text-white text-sm leading-snug mb-1 line-clamp-2">
-            {video.caption}
-          </p>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {video.hashtags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="text-xs font-semibold"
-                style={{ color: "oklch(0.74 0.166 58)" }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-          {/* Sound info */}
-          <div className="flex items-center gap-2 mb-3">
-            <Music size={11} style={{ color: "oklch(0.94 0.007 240 / 0.8)" }} />
-            <span className="text-xs text-white/70 truncate max-w-[200px]">
-              {video.soundName} · {video.soundArtist}
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div
-            className="relative h-0.5 rounded-full overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.25)" }}
-          >
-            <div
-              className="absolute left-0 top-0 h-full rounded-full"
-              style={{
-                width: `${progress}%`,
-                background: "oklch(0.74 0.166 58)",
-              }}
+        {/* Bookmark */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setBookmarked(!bookmarked);
+          }}
+          className="flex flex-col items-center gap-1"
+          data-ocid={`feed.bookmark.button.${video.id}`}
+        >
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <Bookmark
+              className={`w-6 h-6 ${
+                bookmarked ? "fill-primary text-primary" : "text-white"
+              } transition-colors`}
             />
           </div>
+        </button>
+      </div>
+
+      {/* Bottom info */}
+      <div className="absolute bottom-0 left-0 right-16 p-4 z-20">
+        <p className="text-white font-bold text-base drop-shadow">
+          {video.handle}
+        </p>
+        <p className="text-white/90 text-sm mt-0.5 drop-shadow line-clamp-2">
+          {video.description}
+        </p>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {video.hashtags.slice(0, 3).map((tag) => (
+            <span key={tag} className="text-primary text-xs font-semibold">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Language filter pills */}
+        <div className="flex items-center gap-2 mt-2">
+          {LANG_PILLS.map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveLang(lang);
+              }}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all ${
+                activeLang === lang
+                  ? "border-primary text-primary-foreground"
+                  : "border-white/30 text-white/70"
+              }`}
+              style={
+                activeLang === lang ? { background: "var(--primary)" } : {}
+              }
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 mt-2">
+          <Music2 className="w-3 h-3 text-white/70" />
+          <span className="text-white/70 text-xs">{video.song}</span>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

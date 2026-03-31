@@ -10,10 +10,42 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface UserProfile { 'name' : string }
+export interface Comment {
+  'createdAt' : bigint,
+  'text' : string,
+  'author' : Principal,
+  'videoId' : bigint,
+}
+export interface Notification {
+  'notificationType' : { 'like' : null } |
+    { 'comment' : null } |
+    { 'follow' : null },
+  'read' : boolean,
+  'fromUser' : Principal,
+  'videoId' : [] | [bigint],
+}
+export interface User {
+  'bio' : string,
+  'displayName' : string,
+  'avatarUrl' : string,
+  'followerCount' : bigint,
+  'followingCount' : bigint,
+}
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface VideoPost {
+  'title' : string,
+  'creator' : Principal,
+  'likeCount' : bigint,
+  'thumbnailUrl' : string,
+  'hashtags' : Array<string>,
+  'createdAt' : bigint,
+  'description' : string,
+  'commentCount' : bigint,
+  'category' : string,
+  'videoUrl' : string,
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -42,12 +74,35 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addComment' : ActorMethod<[bigint, string], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'createUser' : ActorMethod<[string, string, string], undefined>,
+  'createVideo' : ActorMethod<
+    [string, string, Array<string>, string, string, string],
+    bigint
+  >,
+  'followUser' : ActorMethod<[Principal], undefined>,
+  'getAllVideos' : ActorMethod<[], Array<VideoPost>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [User]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getComments' : ActorMethod<[bigint], Array<Comment>>,
+  'getFollowers' : ActorMethod<[Principal], Array<Principal>>,
+  'getFollowing' : ActorMethod<[Principal], Array<Principal>>,
+  'getNotifications' : ActorMethod<[], Array<Notification>>,
+  'getPagedVideos' : ActorMethod<[bigint, bigint], Array<VideoPost>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [User]>,
+  'getVideo' : ActorMethod<[bigint], [] | [VideoPost]>,
+  'getVideosByCategory' : ActorMethod<[string], Array<VideoPost>>,
+  'getVideosByCreator' : ActorMethod<[Principal], Array<VideoPost>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'likeVideo' : ActorMethod<[bigint], undefined>,
+  'markNotificationsRead' : ActorMethod<[], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[User], undefined>,
+  'searchUsers' : ActorMethod<[string], Array<User>>,
+  'searchVideos' : ActorMethod<[string], Array<VideoPost>>,
+  'unfollowUser' : ActorMethod<[Principal], undefined>,
+  'unlikeVideo' : ActorMethod<[bigint], undefined>,
+  'updateUser' : ActorMethod<[string, string, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
