@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, CheckCheck, Heart, MessageCircle, UserPlus } from "lucide-react";
 import { motion } from "motion/react";
-import { Variant_like_comment_follow } from "../backend.d";
+import { Variant_like_comment_follow } from "../backend";
+import Header from "../components/Header";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useGetNotifications,
@@ -13,14 +14,14 @@ const MOCK_NOTIFICATIONS = [
   {
     id: 1,
     type: "like",
-    user: "@cricket_crazy",
+    user: "@rohit_cricket",
     msg: 'liked your video "Bhangra Moves"',
     time: "2m ago",
   },
   {
     id: 2,
     type: "follow",
-    user: "@dance_india",
+    user: "@priya_dances",
     msg: "started following you",
     time: "15m ago",
   },
@@ -34,24 +35,32 @@ const MOCK_NOTIFICATIONS = [
   {
     id: 4,
     type: "like",
-    user: "@festival_queen",
+    user: "@ananya_food",
     msg: 'liked your video "Diwali Vibes"',
     time: "3h ago",
   },
   {
     id: 5,
     type: "follow",
-    user: "@adventurer_raj",
+    user: "@arjun_travel",
     msg: "started following you",
     time: "5h ago",
+  },
+  {
+    id: 6,
+    type: "comment",
+    user: "@kavya_music",
+    msg: 'commented: "This is fire! 🎶"',
+    time: "7h ago",
   },
 ];
 
 function NotifIcon({ type }: { type: string }) {
   if (type === "like")
-    return <Heart className="w-4 h-4 text-red-400 fill-red-400" />;
-  if (type === "follow") return <UserPlus className="w-4 h-4 text-primary" />;
-  return <MessageCircle className="w-4 h-4 text-blue-400" />;
+    return <Heart className="w-3.5 h-3.5 text-red-400 fill-red-400" />;
+  if (type === "follow")
+    return <UserPlus className="w-3.5 h-3.5" style={{ color: "#F4A23B" }} />;
+  return <MessageCircle className="w-3.5 h-3.5 text-blue-400" />;
 }
 
 function notifTypeFromVariant(v: Variant_like_comment_follow): string {
@@ -68,12 +77,20 @@ export default function Notifications() {
   if (!identity) {
     return (
       <div
-        className="h-[100dvh] flex flex-col items-center justify-center gap-4 px-6 text-center"
+        className="flex flex-col"
+        style={{ height: "100dvh", background: "oklch(0.08 0.01 240)" }}
         data-ocid="notifications.page"
       >
-        <Bell className="w-16 h-16 text-primary" />
-        <h2 className="font-display font-bold text-2xl">Your Inbox</h2>
-        <p className="text-muted-foreground">Login to see your notifications</p>
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <Bell className="w-16 h-16" style={{ color: "#F4A23B" }} />
+          <h2 className="font-display font-bold text-2xl text-white">
+            Your Inbox
+          </h2>
+          <p style={{ color: "oklch(0.60 0.03 240)" }}>
+            Login to see your notifications
+          </p>
+        </div>
       </div>
     );
   }
@@ -100,84 +117,109 @@ export default function Notifications() {
 
   return (
     <div
-      className="h-[100dvh] overflow-y-auto pb-20 pt-12"
+      className="flex flex-col"
+      style={{ height: "100dvh", background: "oklch(0.08 0.01 240)" }}
       data-ocid="notifications.page"
     >
-      <div className="px-4 max-w-lg mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display font-black text-2xl">Inbox</h1>
-          {hasUnread && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => markRead()}
-              disabled={marking}
-              className="text-xs border-border"
-              data-ocid="notifications.mark_read.button"
-            >
-              <CheckCheck className="w-3 h-3 mr-1" />
-              Mark all read
-            </Button>
+      <Header />
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="px-4 pt-5 max-w-lg mx-auto">
+          <div className="flex items-center justify-between mb-5">
+            <h1 className="font-display font-black text-2xl text-white">
+              Inbox
+            </h1>
+            {hasUnread && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => markRead()}
+                disabled={marking}
+                className="text-xs"
+                style={{ borderColor: "oklch(0.25 0.025 240)" }}
+                data-ocid="notifications.mark_read.button"
+              >
+                <CheckCheck className="w-3 h-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
+
+          {isLoading && (
+            <div className="space-y-3" data-ocid="notifications.loading_state">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isLoading && (
+            <div className="space-y-1">
+              {items.map((notif, i) => (
+                <motion.div
+                  key={notif.id}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="flex items-center gap-3 p-3 rounded-xl"
+                  style={{
+                    background:
+                      !("read" in notif) || !notif.read
+                        ? "oklch(0.75 0.165 57 / 0.06)"
+                        : "transparent",
+                  }}
+                  data-ocid={`notifications.item.${i + 1}`}
+                >
+                  <div className="relative flex-shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
+                      }}
+                    >
+                      {notif.user[1]?.toUpperCase() ?? "U"}
+                    </div>
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border"
+                      style={{
+                        background: "oklch(0.12 0.015 240)",
+                        borderColor: "oklch(0.22 0.025 240)",
+                      }}
+                    >
+                      <NotifIcon type={notif.type} />
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white">
+                      <span className="font-semibold">{notif.user}</span>{" "}
+                      <span style={{ color: "oklch(0.66 0.03 240)" }}>
+                        {notif.msg}
+                      </span>
+                    </p>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{ color: "oklch(0.55 0.03 240)" }}
+                    >
+                      {notif.time}
+                    </p>
+                  </div>
+                  {"read" in notif && !notif.read && (
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: "#F4A23B" }}
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </div>
           )}
         </div>
-
-        {isLoading && (
-          <div className="space-y-3" data-ocid="notifications.loading_state">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!isLoading && (
-          <div className="space-y-1">
-            {items.map((notif, i) => (
-              <motion.div
-                key={notif.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                  !("read" in notif) || !notif.read ? "bg-primary/5" : ""
-                }`}
-                data-ocid={`notifications.item.${i + 1}`}
-              >
-                <div className="relative">
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, oklch(0.72 0.17 55), oklch(0.58 0.24 340))",
-                    }}
-                  >
-                    {notif.user[1]?.toUpperCase() ?? "U"}
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center">
-                    <NotifIcon type={notif.type} />
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">
-                    <span className="font-semibold">{notif.user}</span>{" "}
-                    <span className="text-muted-foreground">{notif.msg}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {notif.time}
-                  </p>
-                </div>
-                {"read" in notif && !notif.read && (
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                )}
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

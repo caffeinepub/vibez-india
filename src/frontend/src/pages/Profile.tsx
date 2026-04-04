@@ -23,7 +23,8 @@ import {
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { MOCK_VIDEOS } from "../data/mockVideos";
+import Header from "../components/Header";
+import { MOCK_VIDEOS } from "../data/videos";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useCreateUser,
@@ -58,7 +59,6 @@ export default function Profile() {
   const [setupBio, setSetupBio] = useState("");
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
-  // Facebook connection is tracked client-side (not in backend)
   const [fbConnected, setFbConnected] = useState(false);
 
   const showProfileSetup =
@@ -67,7 +67,6 @@ export default function Profile() {
     isFetched &&
     profile === null &&
     !showSetup;
-
   if (showProfileSetup && !showSetup) {
     setTimeout(() => setShowSetup(true), 100);
   }
@@ -130,13 +129,6 @@ export default function Profile() {
     }
   };
 
-  const handleToggleFacebook = () => {
-    setFbConnected((prev) => !prev);
-    toast.success(
-      fbConnected ? "Facebook disconnected" : "Facebook connected! 🎉",
-    );
-  };
-
   const handleWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent("Check out Vibez India — the best short video app for India! https://vibezindia.app 🎬")}`;
     window.open(url, "_blank", "noopener,noreferrer");
@@ -145,44 +137,48 @@ export default function Profile() {
   if (!isAuthenticated) {
     return (
       <div
-        className="h-[100dvh] flex flex-col items-center justify-center gap-6 px-6 text-center"
+        className="flex flex-col"
+        style={{ height: "100dvh", background: "oklch(0.08 0.01 240)" }}
         data-ocid="profile.page"
       >
-        <div
-          className="w-24 h-24 rounded-full flex items-center justify-center text-4xl"
-          style={{
-            background:
-              "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
-          }}
-        >
-          🎬
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 text-center">
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center text-4xl"
+            style={{
+              background:
+                "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
+            }}
+          >
+            🎬
+          </div>
+          <div>
+            <h2 className="font-display font-black text-2xl text-white mb-1">
+              Join Vibez India
+            </h2>
+            <p className="text-sm" style={{ color: "oklch(0.60 0.03 240)" }}>
+              Login to create, share and connect with creators across India
+            </p>
+          </div>
+          <Button
+            onClick={handleLogin}
+            disabled={isLoggingIn}
+            className="w-full max-w-xs h-12 font-bold text-base rounded-xl"
+            style={{
+              background:
+                "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
+            }}
+            data-ocid="profile.login.button"
+          >
+            {isLoggingIn ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Logging in...
+              </>
+            ) : (
+              "Login to Vibez"
+            )}
+          </Button>
         </div>
-        <div>
-          <h2 className="font-display font-black text-2xl mb-1">
-            Join Vibez India
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Login to create, share and connect with creators across India
-          </p>
-        </div>
-        <Button
-          onClick={handleLogin}
-          disabled={isLoggingIn}
-          className="w-full max-w-xs h-12 font-bold text-base"
-          style={{
-            background:
-              "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
-          }}
-          data-ocid="profile.login.button"
-        >
-          {isLoggingIn ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Logging in...
-            </>
-          ) : (
-            "Login to Vibez"
-          )}
-        </Button>
       </div>
     );
   }
@@ -190,21 +186,20 @@ export default function Profile() {
   if (profileLoading) {
     return (
       <div
-        className="h-[100dvh] overflow-y-auto pb-20 pt-12"
+        className="flex flex-col"
+        style={{ height: "100dvh", background: "oklch(0.08 0.01 240)" }}
         data-ocid="profile.page"
       >
-        <div className="px-4 max-w-lg mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <Skeleton className="w-20 h-20 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-1/2" />
-              <Skeleton className="h-3 w-3/4" />
+        <Header />
+        <div className="flex-1 overflow-y-auto pb-20">
+          <div className="px-4 pt-5 max-w-lg mx-auto">
+            <div className="flex items-center gap-4 mb-6">
+              <Skeleton className="w-20 h-20 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="aspect-square rounded-lg" />
-            ))}
           </div>
         </div>
       </div>
@@ -217,206 +212,286 @@ export default function Profile() {
 
   return (
     <div
-      className="h-[100dvh] overflow-y-auto pb-20 pt-12"
+      className="flex flex-col"
+      style={{ height: "100dvh", background: "oklch(0.08 0.01 240)" }}
       data-ocid="profile.page"
     >
-      <div className="px-4 max-w-lg mx-auto">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white font-black text-3xl border-2 border-primary flex-shrink-0"
-              style={{
-                background:
-                  "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
-              }}
-            >
-              {initial}
-            </div>
-            <div>
-              <h2 className="font-display font-black text-xl">{displayName}</h2>
-              {bio && (
-                <p className="text-muted-foreground text-sm mt-0.5 line-clamp-2">
-                  {bio}
-                </p>
-              )}
-              {fbConnected && (
-                <Badge className="mt-1 bg-[#1877F2] text-white border-0 text-xs">
-                  <Facebook className="w-3 h-3 mr-1" /> Facebook Connected
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={openEdit}
-            className="border-border text-xs"
-            data-ocid="profile.edit.button"
-          >
-            <Edit3 className="w-3 h-3 mr-1" /> Edit
-          </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {[
-            { label: "Videos", value: MOCK_VIDEOS.length },
-            {
-              label: "Followers",
-              value: profile ? formatFollowers(profile.followerCount) : "0",
-            },
-            {
-              label: "Following",
-              value: profile ? formatFollowers(profile.followingCount) : "0",
-            },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-card rounded-xl p-3 text-center"
-            >
-              <p className="font-display font-black text-xl text-primary">
-                {stat.value}
-              </p>
-              <p className="text-muted-foreground text-xs">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Social connects */}
-        <div className="space-y-3 mb-6">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-            Connect & Share
-          </h3>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleToggleFacebook}
-            className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
-              fbConnected
-                ? "bg-[#1877F2]/20 border-[#1877F2] text-[#4a9eff]"
-                : "bg-card border-border hover:border-[#1877F2]/50"
-            }`}
-            data-ocid="profile.facebook.button"
-          >
-            <Facebook className="w-5 h-5 text-[#1877F2]" />
-            <div className="text-left">
-              <p className="font-semibold text-sm">
-                {fbConnected ? "Facebook Connected" : "Connect with Facebook"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {fbConnected
-                  ? "Tap to disconnect"
-                  : "Share your Vibez on Facebook"}
-              </p>
-            </div>
-            {fbConnected && (
-              <CheckCircle2 className="w-5 h-5 text-[#1877F2] ml-auto" />
-            )}
-          </motion.button>
-
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={handleWhatsApp}
-            className="w-full flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:border-[#25D366]/50 transition-all"
-            data-ocid="profile.whatsapp.button"
-          >
-            <MessageCircle className="w-5 h-5 text-[#25D366]" />
-            <div className="text-left">
-              <p className="font-semibold text-sm">Share on WhatsApp</p>
-              <p className="text-xs text-muted-foreground">
-                Invite friends to Vibez India
-              </p>
-            </div>
-          </motion.button>
-        </div>
-
-        {/* Video grid */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Grid className="w-4 h-4 text-primary" />
-            <h3 className="font-semibold text-sm">My Videos</h3>
-          </div>
-          <div className="grid grid-cols-3 gap-1">
-            {MOCK_VIDEOS.slice(0, 6).map((v, i) => (
+      <Header />
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="px-4 pt-5 max-w-lg mx-auto">
+          {/* Profile header */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
               <div
-                key={v.id}
-                className="relative aspect-square rounded-lg overflow-hidden bg-muted"
-                data-ocid={`profile.item.${i + 1}`}
+                className="w-20 h-20 rounded-full flex items-center justify-center text-white font-black text-3xl border-2 flex-shrink-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
+                  borderColor: "#F4A23B",
+                }}
               >
-                <img
-                  src={v.thumbnail}
-                  alt={v.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                {initial}
+              </div>
+              <div>
+                <h2 className="font-display font-black text-xl text-white">
+                  {displayName}
+                </h2>
+                {bio && (
+                  <p
+                    className="text-sm mt-0.5 line-clamp-2"
+                    style={{ color: "oklch(0.60 0.03 240)" }}
+                  >
+                    {bio}
+                  </p>
+                )}
+                {fbConnected && (
+                  <Badge
+                    className="mt-1 text-white border-0 text-xs"
+                    style={{ background: "#1877F2" }}
+                  >
+                    <Facebook className="w-3 h-3 mr-1" /> Facebook Connected
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openEdit}
+              className="text-xs"
+              style={{ borderColor: "oklch(0.25 0.025 240)" }}
+              data-ocid="profile.edit.button"
+            >
+              <Edit3 className="w-3 h-3 mr-1" /> Edit
+            </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {[
+              { label: "Videos", value: MOCK_VIDEOS.length },
+              {
+                label: "Followers",
+                value: profile ? formatFollowers(profile.followerCount) : "0",
+              },
+              {
+                label: "Following",
+                value: profile ? formatFollowers(profile.followingCount) : "0",
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl p-3 text-center"
+                style={{ background: "oklch(0.12 0.015 240)" }}
+              >
+                <p
+                  className="font-display font-black text-xl"
+                  style={{ color: "#F4A23B" }}
+                >
+                  {stat.value}
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: "oklch(0.60 0.03 240)" }}
+                >
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Logout */}
-        <Button
-          variant="outline"
-          onClick={handleLogout}
-          className="w-full border-border text-muted-foreground"
-          data-ocid="profile.logout.button"
-        >
-          <LogOut className="w-4 h-4 mr-2" /> Log out
-        </Button>
+          {/* Social connects */}
+          <div className="space-y-3 mb-6">
+            <h3
+              className="text-sm font-semibold uppercase tracking-wide"
+              style={{ color: "oklch(0.55 0.03 240)" }}
+            >
+              Connect & Share
+            </h3>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                setFbConnected((p) => !p);
+                toast.success(
+                  fbConnected
+                    ? "Facebook disconnected"
+                    : "Facebook connected! 🎉",
+                );
+              }}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border transition-all"
+              style={{
+                background: fbConnected
+                  ? "rgba(24,119,242,0.12)"
+                  : "oklch(0.12 0.015 240)",
+                borderColor: fbConnected ? "#1877F2" : "oklch(0.22 0.025 240)",
+              }}
+              data-ocid="profile.facebook.button"
+            >
+              <Facebook className="w-5 h-5" style={{ color: "#1877F2" }} />
+              <div className="text-left">
+                <p className="font-semibold text-sm text-white">
+                  {fbConnected ? "Facebook Connected" : "Connect with Facebook"}
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: "oklch(0.60 0.03 240)" }}
+                >
+                  {fbConnected
+                    ? "Tap to disconnect"
+                    : "Share your Vibez on Facebook"}
+                </p>
+              </div>
+              {fbConnected && (
+                <CheckCircle2
+                  className="w-5 h-5 ml-auto"
+                  style={{ color: "#1877F2" }}
+                />
+              )}
+            </motion.button>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6 mb-2">
-          © {new Date().getFullYear()}. Built with love using{" "}
-          <a
-            href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleWhatsApp}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border transition-all"
+              style={{
+                background: "oklch(0.12 0.015 240)",
+                borderColor: "oklch(0.22 0.025 240)",
+              }}
+              data-ocid="profile.whatsapp.button"
+            >
+              <MessageCircle className="w-5 h-5" style={{ color: "#25D366" }} />
+              <div className="text-left">
+                <p className="font-semibold text-sm text-white">
+                  Invite Friends on WhatsApp
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: "oklch(0.60 0.03 240)" }}
+                >
+                  Invite friends to Vibez India
+                </p>
+              </div>
+            </motion.button>
+          </div>
+
+          {/* Video grid */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Grid className="w-4 h-4" style={{ color: "#F4A23B" }} />
+              <h3 className="font-semibold text-sm text-white">My Videos</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {MOCK_VIDEOS.slice(0, 6).map((v, i) => (
+                <div
+                  key={v.id}
+                  className="relative aspect-square rounded-lg overflow-hidden"
+                  style={{ background: "oklch(0.15 0.015 240)" }}
+                  data-ocid={`profile.item.${i + 1}`}
+                >
+                  {v.thumbnail ? (
+                    <img
+                      src={v.thumbnail}
+                      alt={v.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full"
+                      style={{ background: v.gradient }}
+                    />
+                  )}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)",
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Logout */}
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="w-full"
+            style={{
+              borderColor: "oklch(0.25 0.025 240)",
+              color: "oklch(0.60 0.03 240)",
+            }}
+            data-ocid="profile.logout.button"
           >
-            caffeine.ai
-          </a>
-        </p>
+            <LogOut className="w-4 h-4 mr-2" /> Log out
+          </Button>
+
+          {/* Footer */}
+          <p
+            className="text-center text-xs mt-6 mb-2"
+            style={{ color: "oklch(0.50 0.03 240)" }}
+          >
+            © {new Date().getFullYear()}. Built with ❤️ using{" "}
+            <a
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+              style={{ color: "#F4A23B" }}
+            >
+              caffeine.ai
+            </a>
+          </p>
+        </div>
       </div>
 
       {/* Profile Setup Modal */}
       <Dialog open={showSetup} onOpenChange={setShowSetup}>
         <DialogContent
-          className="bg-card border-border max-w-sm mx-auto"
+          className="max-w-sm mx-auto"
+          style={{
+            background: "oklch(0.12 0.015 240)",
+            borderColor: "oklch(0.22 0.025 240)",
+          }}
           data-ocid="profile.setup.dialog"
         >
           <DialogHeader>
-            <DialogTitle className="font-display font-black text-xl text-center">
+            <DialogTitle className="font-display font-black text-xl text-center text-white">
               Welcome to Vibez! 🎬
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSetup} className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold">Your Name *</Label>
+              <Label className="text-sm font-semibold text-white">
+                Your Name *
+              </Label>
               <Input
                 value={setupName}
                 onChange={(e) => setSetupName(e.target.value)}
                 placeholder="What should we call you?"
-                className="bg-muted border-none"
+                className="border-none"
+                style={{ background: "oklch(0.15 0.015 240)" }}
                 data-ocid="profile.setup.name.input"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold">Bio</Label>
+              <Label className="text-sm font-semibold text-white">Bio</Label>
               <Textarea
                 value={setupBio}
                 onChange={(e) => setSetupBio(e.target.value)}
                 placeholder="Tell us about yourself..."
-                className="bg-muted border-none resize-none h-20"
+                className="border-none resize-none h-20"
+                style={{ background: "oklch(0.15 0.015 240)" }}
                 data-ocid="profile.setup.bio.textarea"
               />
             </div>
             <Button
               type="submit"
               disabled={creating}
-              className="w-full font-bold"
+              className="w-full font-bold rounded-xl"
               style={{
                 background:
-                  "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
+                  "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
               }}
               data-ocid="profile.setup.submit_button"
             >
@@ -435,30 +510,38 @@ export default function Profile() {
       {/* Edit Profile Modal */}
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent
-          className="bg-card border-border max-w-sm mx-auto"
+          className="max-w-sm mx-auto"
+          style={{
+            background: "oklch(0.12 0.015 240)",
+            borderColor: "oklch(0.22 0.025 240)",
+          }}
           data-ocid="profile.edit.dialog"
         >
           <DialogHeader>
-            <DialogTitle className="font-display font-black text-xl">
+            <DialogTitle className="font-display font-black text-xl text-white">
               Edit Profile
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEdit} className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold">Display Name</Label>
+              <Label className="text-sm font-semibold text-white">
+                Display Name
+              </Label>
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="bg-muted border-none"
+                className="border-none"
+                style={{ background: "oklch(0.15 0.015 240)" }}
                 data-ocid="profile.edit.name.input"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-semibold">Bio</Label>
+              <Label className="text-sm font-semibold text-white">Bio</Label>
               <Textarea
                 value={editBio}
                 onChange={(e) => setEditBio(e.target.value)}
-                className="bg-muted border-none resize-none h-20"
+                className="border-none resize-none h-20"
+                style={{ background: "oklch(0.15 0.015 240)" }}
                 data-ocid="profile.edit.bio.textarea"
               />
             </div>
@@ -467,7 +550,8 @@ export default function Profile() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowEdit(false)}
-                className="flex-1 border-border"
+                className="flex-1 text-sm"
+                style={{ borderColor: "oklch(0.25 0.025 240)" }}
                 data-ocid="profile.edit.cancel_button"
               >
                 Cancel
@@ -475,10 +559,10 @@ export default function Profile() {
               <Button
                 type="submit"
                 disabled={updating}
-                className="flex-1 font-bold"
+                className="flex-1 font-bold rounded-xl"
                 style={{
                   background:
-                    "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
+                    "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
                 }}
                 data-ocid="profile.edit.save_button"
               >

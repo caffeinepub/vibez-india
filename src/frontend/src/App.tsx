@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/sonner";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   RouterProvider,
@@ -14,11 +13,16 @@ import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Upload from "./pages/Upload";
 
-const queryClient = new QueryClient();
-
 const rootRoute = createRootRoute({
   component: () => (
-    <div className="relative h-[100dvh] overflow-hidden bg-background">
+    <div
+      className="relative"
+      style={{
+        height: "100dvh",
+        overflow: "hidden",
+        background: "oklch(0.08 0.01 240)",
+      }}
+    >
       <Outlet />
       <BottomNav />
     </div>
@@ -69,9 +73,9 @@ declare module "@tanstack/react-router" {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <RouterProvider router={router} />
       <Toaster position="top-center" />
-    </QueryClientProvider>
+    </>
   );
 }

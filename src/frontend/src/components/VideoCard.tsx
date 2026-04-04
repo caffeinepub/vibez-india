@@ -1,29 +1,19 @@
-import {
-  Bookmark,
-  Heart,
-  MessageCircle,
-  Music2,
-  Play,
-  Share2,
-} from "lucide-react";
+import { Heart, MapPin, MessageCircle, Music2, Share2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
-import { type MockVideo, formatCount } from "../data/mockVideos";
+import { formatCount } from "../data/videos";
+import type { MockVideo } from "../types";
 import ShareSheet from "./ShareSheet";
 
 interface VideoCardProps {
   video: MockVideo;
-  isActive: boolean;
+  index: number;
 }
 
-const LANG_PILLS = ["हिंदी", "English"];
-
-export default function VideoCard({ video, isActive }: VideoCardProps) {
+export default function VideoCard({ video, index }: VideoCardProps) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
-  const [bookmarked, setBookmarked] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
-  const [activeLang, setActiveLang] = useState("हिंदी");
   const lastTapRef = useRef(0);
 
   const handleDoubleTap = useCallback(() => {
@@ -39,7 +29,8 @@ export default function VideoCard({ video, isActive }: VideoCardProps) {
     lastTapRef.current = now;
   }, [liked]);
 
-  const toggleLike = () => {
+  const toggleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (liked) {
       setLiked(false);
       setLikes((l) => l - 1);
@@ -49,214 +40,237 @@ export default function VideoCard({ video, isActive }: VideoCardProps) {
     }
   };
 
+  const creatorInitial = video.creator[0]?.toUpperCase() ?? "V";
+
   return (
-    <article
-      className="snap-item relative w-full h-[100dvh] bg-black overflow-hidden flex-shrink-0"
-      onClick={handleDoubleTap}
-      onKeyUp={(e) => e.key === "Enter" && handleDoubleTap()}
-      data-ocid={`feed.item.${video.id}`}
+    <div
+      className="snap-item relative w-full flex-shrink-0"
+      style={{ height: "100%" }}
+      data-ocid={`feed.item.${index + 1}`}
     >
-      <img
-        src={video.thumbnail}
-        alt={video.title}
-        className="absolute inset-0 w-full h-full object-cover"
-        loading="lazy"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/30" />
-
-      {!isActive && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Play className="w-16 h-16 text-white/70 fill-white/70" />
-        </div>
-      )}
-
-      {/* Double-tap heart burst */}
-      <AnimatePresence>
-        {showHeart && (
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1.2 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Heart className="w-32 h-32 text-red-500 fill-red-500 drop-shadow-lg" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top-left: username + category badge */}
-      <div className="absolute top-[72px] left-4 z-20 flex items-center gap-2">
-        <span className="bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5 text-white text-xs font-semibold">
-          {video.handle}
-        </span>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-bold"
+      {/* Full-viewport layout: centered card column + action rail */}
+      <div className="w-full h-full flex items-end justify-center pb-20">
+        {/* Video card */}
+        <div
+          className="relative flex-shrink-0"
           style={{
-            background: "oklch(0.73 0.17 55 / 0.85)",
-            color: "oklch(0.09 0.01 55)",
+            width: "clamp(280px, 50vw, 340px)",
+            height: "calc(100% - 1rem)",
+            maxHeight: "680px",
           }}
+          onClick={handleDoubleTap}
+          onKeyUp={(e) => e.key === "Enter" && handleDoubleTap()}
         >
-          {video.category}
-        </span>
-      </div>
-
-      {/* Top-right overflow */}
-      <div className="absolute top-[72px] right-4 z-20">
-        <button
-          type="button"
-          className="text-white/70 text-lg leading-none p-1"
-          onClick={(e) => e.stopPropagation()}
-        >
-          ···
-        </button>
-      </div>
-
-      {/* Right-side engagement rail */}
-      <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5 z-20">
-        {/* Creator avatar */}
-        <div className="mb-1">
+          {/* Video background */}
           <div
-            className="w-11 h-11 rounded-full border-2 border-white overflow-hidden flex items-center justify-center text-white font-bold text-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, oklch(0.73 0.17 55), oklch(0.58 0.24 340))",
-            }}
+            className="absolute inset-0 rounded-2xl overflow-hidden"
+            style={{ borderRadius: "16px" }}
           >
-            {video.creator[0]}
+            {video.thumbnail ? (
+              <img
+                src={video.thumbnail}
+                alt={video.title}
+                className="w-full h-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            ) : (
+              <div
+                className="w-full h-full"
+                style={{ background: video.gradient }}
+              />
+            )}
+            {/* Dark gradient overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.25) 100%)",
+              }}
+            />
           </div>
+
+          {/* Double-tap heart burst */}
+          <AnimatePresence>
+            {showHeart && (
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: 1, scale: 1.2 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.6 }}
+              >
+                <Heart className="w-24 h-24 text-red-500 fill-red-500 drop-shadow-2xl" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Bottom-left info overlay */}
           <div
-            className="w-4 h-4 rounded-full flex items-center justify-center -mt-2 mx-auto border border-black"
-            style={{ background: "oklch(0.73 0.17 55)" }}
+            className="absolute bottom-0 left-0 right-0 p-3 z-10"
+            style={{ borderRadius: "0 0 16px 16px" }}
           >
-            <span className="text-black text-[8px] font-black">+</span>
+            <p className="text-white font-bold text-sm leading-tight">
+              {video.handle}
+            </p>
+            <p className="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">
+              {video.description}
+            </p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {video.hashtags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs font-semibold"
+                  style={{ color: "#F4A23B" }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <div className="flex items-center gap-1 mt-1.5">
+              <MapPin
+                className="w-3 h-3"
+                style={{ color: "rgba(255,255,255,0.65)" }}
+              />
+              <span
+                className="text-[11px]"
+                style={{ color: "rgba(255,255,255,0.65)" }}
+              >
+                {video.location}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <Music2
+                className="w-3 h-3"
+                style={{ color: "rgba(255,255,255,0.65)" }}
+              />
+              <span
+                className="text-[11px] truncate"
+                style={{ color: "rgba(255,255,255,0.65)" }}
+              >
+                {video.song}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Like */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleLike();
+        {/* Right action rail — attached to card */}
+        <div
+          className="flex flex-col items-center gap-4 flex-shrink-0"
+          style={{
+            marginLeft: "12px",
+            alignSelf: "flex-end",
+            paddingBottom: "12px",
           }}
-          className="flex flex-col items-center gap-1"
-          data-ocid={`feed.like.button.${video.id}`}
         >
-          <motion.div
-            whileTap={{ scale: 1.4 }}
-            className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          {/* Creator avatar with saffron ring */}
+          <div
+            className="flex flex-col items-center"
+            style={{ marginBottom: "2px" }}
           >
-            <Heart
-              className={`w-6 h-6 ${
-                liked ? "text-red-500 fill-red-500" : "text-white"
-              } transition-colors`}
-            />
-          </motion.div>
-          <span className="text-white text-xs font-semibold drop-shadow">
-            {formatCount(likes)}
-          </span>
-        </button>
-
-        {/* Comment */}
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className="flex flex-col items-center gap-1"
-          data-ocid={`feed.comment.button.${video.id}`}
-        >
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <MessageCircle className="w-6 h-6 text-white" />
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm saffron-ring overflow-hidden flex-shrink-0"
+              style={{
+                background:
+                  "linear-gradient(135deg, #F4A23B, oklch(0.55 0.22 340))",
+              }}
+            >
+              {creatorInitial}
+            </div>
+            <div
+              className="w-4 h-4 rounded-full flex items-center justify-center border border-black -mt-1.5 z-10 flex-shrink-0"
+              style={{ background: "#F4A23B" }}
+            >
+              <span
+                className="text-black font-black"
+                style={{ fontSize: "9px" }}
+              >
+                +
+              </span>
+            </div>
           </div>
-          <span className="text-white text-xs font-semibold drop-shadow">
-            {formatCount(video.comments)}
-          </span>
-        </button>
 
-        {/* Share */}
-        <ShareSheet
-          title={`${video.title} — ${video.handle} on Vibez India 🎬`}
-        >
+          {/* Like */}
+          <button
+            type="button"
+            onClick={toggleLike}
+            className="flex flex-col items-center gap-0.5"
+            data-ocid={`feed.like.button.${index + 1}`}
+          >
+            <motion.div
+              whileTap={{ scale: 1.4 }}
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(0,0,0,0.4)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <Heart
+                className={`w-5 h-5 transition-colors ${liked ? "fill-red-500 text-red-500" : "text-white"}`}
+              />
+            </motion.div>
+            <span className="text-white text-[11px] font-semibold drop-shadow">
+              {formatCount(likes)}
+            </span>
+          </button>
+
+          {/* Comment */}
           <button
             type="button"
             onClick={(e) => e.stopPropagation()}
-            className="flex flex-col items-center gap-1"
-            data-ocid={`feed.share.button.${video.id}`}
+            className="flex flex-col items-center gap-0.5"
+            data-ocid={`feed.comment.button.${index + 1}`}
           >
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
-              <Share2 className="w-6 h-6 text-white" />
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(0,0,0,0.4)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
             </div>
-            <span className="text-white text-xs font-semibold drop-shadow">
-              {formatCount(video.shares)}
+            <span className="text-white text-[11px] font-semibold drop-shadow">
+              {formatCount(video.comments)}
             </span>
           </button>
-        </ShareSheet>
 
-        {/* Bookmark */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setBookmarked(!bookmarked);
-          }}
-          className="flex flex-col items-center gap-1"
-          data-ocid={`feed.bookmark.button.${video.id}`}
-        >
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <Bookmark
-              className={`w-6 h-6 ${
-                bookmarked ? "fill-primary text-primary" : "text-white"
-              } transition-colors`}
-            />
-          </div>
-        </button>
-      </div>
-
-      {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-16 p-4 z-20">
-        <p className="text-white font-bold text-base drop-shadow">
-          {video.handle}
-        </p>
-        <p className="text-white/90 text-sm mt-0.5 drop-shadow line-clamp-2">
-          {video.description}
-        </p>
-        <div className="flex flex-wrap gap-1 mt-1">
-          {video.hashtags.slice(0, 3).map((tag) => (
-            <span key={tag} className="text-primary text-xs font-semibold">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Language filter pills */}
-        <div className="flex items-center gap-2 mt-2">
-          {LANG_PILLS.map((lang) => (
+          {/* Share */}
+          <ShareSheet
+            title={`${video.title} — ${video.handle} on Vibez India 🎬`}
+          >
             <button
-              key={lang}
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveLang(lang);
-              }}
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all ${
-                activeLang === lang
-                  ? "border-primary text-primary-foreground"
-                  : "border-white/30 text-white/70"
-              }`}
-              style={
-                activeLang === lang ? { background: "var(--primary)" } : {}
-              }
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col items-center gap-0.5"
+              data-ocid={`feed.share.button.${index + 1}`}
             >
-              {lang}
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <Share2 className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-white text-[11px] font-semibold drop-shadow">
+                {formatCount(video.shares)}
+              </span>
             </button>
-          ))}
-        </div>
+          </ShareSheet>
 
-        <div className="flex items-center gap-2 mt-2">
-          <Music2 className="w-3 h-3 text-white/70" />
-          <span className="text-white/70 text-xs">{video.song}</span>
+          {/* India flag indicator */}
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            🇮🇳
+          </div>
         </div>
       </div>
-    </article>
+    </div>
   );
 }

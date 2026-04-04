@@ -3,7 +3,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Facebook, Link, MessageCircle, Share2 } from "lucide-react";
+import { Facebook, Link2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ShareSheetProps {
@@ -29,54 +29,66 @@ export default function ShareSheet({
     <Popover>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
-        className="w-52 p-2 bg-popover border-border"
+        className="w-48 p-1.5"
         side="left"
         align="center"
+        style={{
+          background: "oklch(0.14 0.02 240)",
+          border: "1px solid oklch(0.22 0.025 240)",
+        }}
         data-ocid="share.popover"
       >
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground px-2 pb-1 font-medium">
-            Share via
-          </p>
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors cursor-pointer"
-            data-ocid="share.whatsapp.button"
+        <p
+          className="text-[11px] px-2 py-1"
+          style={{ color: "oklch(0.60 0.03 240)" }}
+        >
+          Share via
+        </p>
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-colors hover:bg-white/5"
+          data-ocid="share.whatsapp.button"
+        >
+          <span
+            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "#25D366" }}
           >
-            <span className="w-7 h-7 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
-              <MessageCircle className="w-4 h-4 text-white" />
-            </span>
-            <span className="text-sm font-medium">WhatsApp</span>
-          </a>
-          <a
-            href={fbUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors cursor-pointer"
-            data-ocid="share.facebook.button"
+            <MessageCircle className="w-3.5 h-3.5 text-white" />
+          </span>
+          <span className="text-sm font-medium text-white">WhatsApp</span>
+        </a>
+        <a
+          href={fbUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-colors hover:bg-white/5"
+          data-ocid="share.facebook.button"
+        >
+          <span
+            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "#1877F2" }}
           >
-            <span className="w-7 h-7 rounded-full bg-[#1877F2] flex items-center justify-center flex-shrink-0">
-              <Facebook className="w-4 h-4 text-white" />
-            </span>
-            <span className="text-sm font-medium">Facebook</span>
-          </a>
-          <button
-            type="button"
-            onClick={copyLink}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors"
-            data-ocid="share.copy_link.button"
+            <Facebook className="w-3.5 h-3.5 text-white" />
+          </span>
+          <span className="text-sm font-medium text-white">Facebook</span>
+        </a>
+        <button
+          type="button"
+          onClick={copyLink}
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md transition-colors hover:bg-white/5"
+          data-ocid="share.copy_link.button"
+        >
+          <span
+            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "oklch(0.22 0.025 240)" }}
           >
-            <span className="w-7 h-7 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-              <Link className="w-4 h-4" />
-            </span>
-            <span className="text-sm font-medium">Copy Link</span>
-          </button>
-        </div>
+            <Link2 className="w-3.5 h-3.5 text-white" />
+          </span>
+          <span className="text-sm font-medium text-white">Copy Link</span>
+        </button>
       </PopoverContent>
     </Popover>
   );
 }
-
-export { Share2 };
